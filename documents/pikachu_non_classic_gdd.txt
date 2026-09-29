@@ -1,0 +1,127 @@
+================================================================================
+           TÀI LIỆU ĐẶC TẢ THIẾT KẾ VÀ KIẾN TRÚC KỸ THUẬT GAME
+                       "PIKACHU NON-CLASSIC" (HTML5)
+================================================================================
+
+I. TỔNG QUAN DỰ ÁN & CÔNG NGHỆ (TECH STACK)
+--------------------------------------------------------------------------------
+1. Tech Stack:
+   - Framework / Bundler: Vite + Vanilla JavaScript (hoặc TypeScript).
+   - Render Engine: PixiJS (tận dụng WebGL / Batch Rendering và Sprite Management).
+   - Nền tảng triển khai: Vercel (Edge CDN, WebP Assets, Caching dài hạn).
+
+2. Kiến trúc phân tách (Decoupled Architecture):
+   - Model (Pure Logic): Ma trận số 2D, thuật toán BFS tìm đường, Deadlock Check,
+     bộ đếm thời gian, Timer sinh ô ngẫu nhiên. Không phụ thuộc PixiJS.
+   - View (PixiJS Layer): Quản lý Container, Sprite, Particle FX, vẽ đường nối bằng Graphics.
+   - Controller (GameManager): Điều phối tương tác chuột/chạm giữa Model và View.
+
+
+II. QUY CHUẨN BÀN CỜ & BỐ CỤC HIỂN THỊ (GRID & RESPONSIVE)
+--------------------------------------------------------------------------------
+1. Kích thước lưới logic:
+   - Chế độ Màn hình Ngang (Landscape): 16 cột x 8 hàng (128 ô tối đa).
+   - Chế độ Màn hình Dọc (Portrait): 8 cột x 16 hàng (128 ô tối đa).
+   - Padding cho thuật toán BFS: Luôn bao thêm 1 lớp viền trống xung quanh
+     (Thành 18x10 hoặc 10x18) để đường nối có thể đi vòng ra mép ngoài bàn cờ.
+
+2. Mặt nạ màn chơi:
+   - Mặt nạ nhị phân của bàn cờ chứa 0 và 1.
+   - Giá trị 0: Ô trống, đường nối đi xuyên qua.
+   - Giá trị 1: Ô hợp lệ chứa quân cờ.
+   - Quy tắc: Tổng số vị trí '1' trong mặt nạ bắt buộc phải là một SỐ CHẴN.
+
+
+III. ĐẶC TẢ THIẾT KẾ CHI TIẾT 9 MÀN CHƠI (LEVEL DESIGN)
+--------------------------------------------------------------------------------
+- Level 1: Cơ bản, không có hiệu ứng đặc biệt + Chỉ có khoảng 8 loại cặp quân cờ + 300s.
+- Level 2: Cơ chế thuộc tính Băng & Lửa (Giải thích ở mục IV.3), 4 cặp băng lửa + Chỉ có khoảng 12 loại cặp quân cờ + 420s.
+- Level 3: Cơ chế Spawner (Giải thích ở mục IV.4) + Cơ chế Băng & Lửa, 8 cặp băng lửa + 600s.
+- Level 4: Cơ chế Spawner Nâng cấp 1 + Cơ chế Băng & Lửa, 8 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 660s.
+- Level 5: Cơ chế Spawner Nâng cấp 2 + Cơ chế Băng & Lửa, 12 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 720s.
+- Level 6: Cơ chế Spawner Nâng cấp 3 + Cơ chế Băng & Lửa, 16 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 840s.
+- Level tối thượng: Cơ chế Spawner Nâng cấp kinh dị + Cơ chế Băng & Lửa, 16 cặp băng lửa + Tối đa 20 loại cặp quân cờ xuất hiện + 960s.
+
+IV. QUY TẮC GHÉP CẶP & LUẬT CHƠI CỐT LÕI (CORE GAMEPLAY RULES)
+--------------------------------------------------------------------------------
+1. Thuật toán kết nối (Pathfinding):
+   - Dùng Breadth-First Search (BFS) có trạng thái:
+     (x, y, current_direction, turn_count).
+   - Điều kiện nối: Đường đi chỉ gồm các ô trống, số góc bẻ tối đa là 2 góc vuông
+     (tối đa 3 đoạn thẳng).
+
+2. Luật Shuffle & Trừ phạt thời gian:
+   - Dù người chơi chủ động bấm nút "Trợ giúp Shuffle" hay hệ thống tự động Shuffle
+     khi phát hiện hết nước đi (Deadlock Detected), game ĐỀU PHẠT TRỪ 4% THỜI GIAN
+     còn lại tại thời điểm đó: timeRemaining = timeRemaining * 0.96
+
+3. Luật Ghép cặp Băng - Lửa:
+   - Hai ô chỉ được ăn khi thỏa mãn ĐỒNG THỜI 2 điều kiện:
+     + Cùng định danh biểu tượng (idA === idB).
+     + Cả 2 ô là NORMAL hoặc Một ô là Băng (ICE) và ô kia là Lửa (FIRE).
+   - Các trường hợp KHÔNG ĐƯỢC ĂN:
+     + Cùng loại Băng - Băng (dù chung id).
+     + Cùng loại Lửa - Lửa (dù chung id).
+     + Ô Thường ghép với ô Băng hoặc Lửa (dù chung id).
+
+4. Cơ chế sinh ô ngẫu nhiên (Spawner):
+   - Lọc tất cả vị trí trống hợp lệ trong phạm vi mặt nạ (mask == 1 && cell == EMPTY).
+   - Chọn ngẫu nhiên 2 vị trí trống, nạp 2 cặp quân cờ hợp lệ vào bàn cờ.
+   - Tần suất sinh quân cờ: Khi người chơi ăn được 12 cặp.
+   - Sau khi sinh ô: Chạy hàm kiểm tra Deadlock, nếu không còn đường đi hợp lệ thì kích hoạt Auto Shuffle.
+   - Các cấp độ của việc sinh quân cờ:
+      + Nâng cấp 1: Mỗi lần sinh ngẫu nhiên 3 cặp.
+      + Nâng cấp 2: Mỗi lần sinh ngẫu nhiên 1 cặp băng lửa + 2 cặp bình thường
+      + Nâng cấp 3: Mỗi lần sinh ra 2 cặp băng lửa + 1 cặp bình thường.
+      + Nâng cấp kinh dị: Mỗi lần sinh ra 2 cặp băng lửa + 1 cặp bình thường + Tần suất sinh quân cờ khi người chơi ăn được 9 cặp.
+      
+
+V. TỐI ƯU HÓA TÀI NGUYÊN & DEPLOY VERCEL (PERFORMANCE & ASSETS)
+--------------------------------------------------------------------------------
+1. Texture Atlas: Gộp toàn bộ icon quân cờ, hiệu ứng viền, icon băng/lửa vào
+   1-2 file WebP lớn duy nhất đi kèm file tọa độ JSON.
+2. Preload: Tải trước toàn bộ Texture Atlas và Audio Sprite qua Assets.load()
+   ở màn hình chờ, chỉ vào game loop khi tiến trình đạt 100%. Không dùng LazyLoad
+   trong gameplay để tránh khựng hình (frame drop).
+3. Vercel Caching: Cấu hình Cache-Control dài hạn trong file vercel.json:
+   {
+     "headers": [
+       {
+         "source": "/assets/(.*)",
+         "headers": [
+           {
+             "key": "Cache-Control",
+             "value": "public, max-age=31536000, immutable"
+           }
+         ]
+       }
+     ]
+   }
+
+VI. CÔNG THỨC TÍNH ĐIỂM
+--------------------------------------------------------------------------------
+Mỗi lần ghép cặp hợp lệ, điểm số được tính theo công thức:
+  Score = (BaseScore * ElementMultiplier) + ComboBonus
+
+1. Điểm cơ bản (BaseScore):
+   - 100 điểm cho mỗi cặp ăn thành công.
+
+2. Hệ số nguyên tố (ElementMultiplier):
+   - Cặp Thường (NORMAL + NORMAL): x1.0
+   - Cặp Băng - Lửa (ICE + FIRE): x1.5
+
+3. Thưởng chuỗi liên hoàn (ComboBonus):
+   - Cửa sổ thời gian duy trì combo: 3.0 giây giữa 2 lần ghép cặp.
+   - Thưởng: ComboCount * 20 điểm.
+   - Nếu quá 3.0 giây không ghép thêm cặp nào: ComboCount tự động reset về 0.
+
+4. Clear Bonus
+- Khi giải phóng toàn bộ bàn cờ: ClearBonus = TimeRemaining (giây) * 10
+- Điểm thưởng được cộng dồn trực tiếp vào tổng điểm tích lũy của người chơi.
+
+Tổng điểm màn chơi: TotalScore = (BaseScore * ElementMultiplier) + ComboBonus
+Tổng điểm game: Tổng điểm các màn chơi cộng lại.
+
+--------------------------------------------------------------------------------
+Lưu ý: Tất cả các tham số hiện tại chỉ là khởi điểm, có thể thay đổi sau này tùy theo test và cân bằng game.
+================================================================================

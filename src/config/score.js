@@ -1,0 +1,17 @@
+// src/config/score.js
+const BASE_SCORE = 100;
+const TIME_BONUS_PER_SECOND = 10;
+const COMBO_TIMEOUT_MS = 3000;
+const COMBO_BONUS_STEP = 20;
+const ELEMENT_MULTIPLIER = {
+    NORMAL: 1.0,
+    ICE_FIRE: 1.5,
+};
+
+export {
+    BASE_SCORE,
+    TIME_BONUS_PER_SECOND,
+    COMBO_TIMEOUT_MS,
+    COMBO_BONUS_STEP,
+    ELEMENT_MULTIPLIER,
+};
