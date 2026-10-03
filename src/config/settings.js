@@ -1,7 +1,7 @@
 // src/config/settings.js
 const AUDIO = {
-    BGM_VOLUME: 0.5,
-    SFX_VOLUME: 0.5,
+    BGM_VOLUME: 0.1,
+    SFX_VOLUME: 0.1,
     MUTE: false,
 };
 

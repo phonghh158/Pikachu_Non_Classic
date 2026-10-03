@@ -36,8 +36,6 @@
         rgba(152, 179, 255, 1) 100%
     );
 
-    --line-color: #ffffff;
-
     --board-width: 960px;
     --board-height: 672px;
 }
@@ -312,9 +310,11 @@ body {
 }
 
 .settings-panel {
-    background-color: #b07d7d;
+    background-color: #232323;
     padding: 24px 32px;
     border-radius: 8px;
+    border: 1px solid #f1f1f1;
+    box-shadow: 2px 2px 4px rgba(255, 255, 255, 0.25);
     width: 320px;
     gap: 20px;
 }
@@ -429,11 +429,11 @@ body {
 }
 
 .tile:hover {
-    border: 1px solid var(--line-color);
+    border: 2px solid #d2665a;
 }
 
 .tile.tile-selected {
-    border: 2px solid var(--line-color);
+    border: 2px solid #b82132;
 }
 
 .tile.tile-ice {

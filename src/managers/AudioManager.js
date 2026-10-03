@@ -7,7 +7,7 @@ class AudioManager {
         this.sounds = new Map();
         this.bgmAudio = null;
         this.currentBgmIndex = -1;
-        this.totalBgmCount = 10;
+        this.totalBgmCount = 6;
 
         const savedAudio = StorageManager.getAudioSettings();
         this.isMuted = savedAudio.MUTE;

@@ -22,10 +22,10 @@ class LineRenderer {
     /**
      * Vẽ đường nối gấp khúc qua danh sách điểm và tự động xóa sau hiệu ứng
      * @param {Array<Object>} pixelPoints - Danh sách [{ x, y }] tọa độ pixel tâm ô
-     * @param {string} [color="#ffe600"] - Màu sắc đường nối
+     * @param {string} [color="#BE5985"] - Màu sắc đường nối
      * @param {number} [duration=300] - Thời gian hiển thị (ms)
      */
-    drawPath(pixelPoints, color = "#ffe600", duration = 300) {
+    drawPath(pixelPoints, color = "#E36A6A", duration = 300) {
         if (!pixelPoints || pixelPoints.length < 2) {
             return;
         }
