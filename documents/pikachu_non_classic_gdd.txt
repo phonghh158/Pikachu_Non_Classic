@@ -20,8 +20,8 @@ I. TỔNG QUAN DỰ ÁN & CÔNG NGHỆ (TECH STACK)
 II. QUY CHUẨN BÀN CỜ & BỐ CỤC HIỂN THỊ (GRID & RESPONSIVE)
 --------------------------------------------------------------------------------
 1. Kích thước lưới logic:
-   - Chế độ Màn hình Ngang (Landscape): 16 cột x 8 hàng (128 ô tối đa).
-   - Chế độ Màn hình Dọc (Portrait): 8 cột x 16 hàng (128 ô tối đa).
+   - Chế độ Màn hình Ngang (Landscape): 16 cột x 10 hàng (160 ô tối đa).
+   - Chế độ Màn hình Dọc (Portrait): 10 cột x 16 hàng (160 ô tối đa).
    - Padding cho thuật toán BFS: Luôn bao thêm 1 lớp viền trống xung quanh
      (Thành 18x10 hoặc 10x18) để đường nối có thể đi vòng ra mép ngoài bàn cờ.
 
@@ -34,13 +34,13 @@ II. QUY CHUẨN BÀN CỜ & BỐ CỤC HIỂN THỊ (GRID & RESPONSIVE)
 
 III. ĐẶC TẢ THIẾT KẾ CHI TIẾT 9 MÀN CHƠI (LEVEL DESIGN)
 --------------------------------------------------------------------------------
-- Level 1: Cơ bản, không có hiệu ứng đặc biệt + Chỉ có khoảng 8 loại cặp quân cờ + 300s.
-- Level 2: Cơ chế thuộc tính Băng & Lửa (Giải thích ở mục IV.3), 4 cặp băng lửa + Chỉ có khoảng 12 loại cặp quân cờ + 420s.
-- Level 3: Cơ chế Spawner (Giải thích ở mục IV.4) + Cơ chế Băng & Lửa, 8 cặp băng lửa + 600s.
-- Level 4: Cơ chế Spawner Nâng cấp 1 + Cơ chế Băng & Lửa, 8 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 660s.
-- Level 5: Cơ chế Spawner Nâng cấp 2 + Cơ chế Băng & Lửa, 12 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 720s.
-- Level 6: Cơ chế Spawner Nâng cấp 3 + Cơ chế Băng & Lửa, 16 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 840s.
-- Level tối thượng: Cơ chế Spawner Nâng cấp kinh dị + Cơ chế Băng & Lửa, 16 cặp băng lửa + Tối đa 20 loại cặp quân cờ xuất hiện + 960s.
+- Level 1: Cơ bản, không có hiệu ứng đặc biệt + Tối đa 8 loại cặp quân cờ + 600s.
+- Level 2: Cơ chế thuộc tính Băng & Lửa (Giải thích ở mục IV.3), 4 cặp băng lửa + Tối đa 10 loại cặp quân cờ + 660s.
+- Level 3: Cơ chế Spawner (Giải thích ở mục IV.4) + Cơ chế Băng & Lửa, 8 cặp băng lửa + Tối đa 12 loại cặp quân cờ + 720s.
+- Level 4: Cơ chế Spawner Nâng cấp 1 + Cơ chế Băng & Lửa, 8 cặp băng lửa + Tối đa 14 loại cặp quân cờ xuất hiện + 840s.
+- Level 5: Cơ chế Spawner Nâng cấp 2 + Cơ chế Băng & Lửa, 12 cặp băng lửa + Tối đa 16 loại cặp quân cờ xuất hiện + 960s.
+- Level 6: Cơ chế Spawner Nâng cấp 3 + Cơ chế Băng & Lửa, 16 cặp băng lửa + Tối đa 18 loại cặp quân cờ xuất hiện + 1020s.
+- Level tối thượng: Cơ chế Spawner Nâng cấp kinh dị + Cơ chế Băng & Lửa, 16 cặp băng lửa + Tối đa 20 loại cặp quân cờ xuất hiện + 1080s.
 
 IV. QUY TẮC GHÉP CẶP & LUẬT CHƠI CỐT LÕI (CORE GAMEPLAY RULES)
 --------------------------------------------------------------------------------
@@ -67,12 +67,12 @@ IV. QUY TẮC GHÉP CẶP & LUẬT CHƠI CỐT LÕI (CORE GAMEPLAY RULES)
 4. Cơ chế sinh ô ngẫu nhiên (Spawner):
    - Lọc tất cả vị trí trống hợp lệ trong phạm vi mặt nạ (mask == 1 && cell == EMPTY).
    - Chọn ngẫu nhiên 2 vị trí trống, nạp 2 cặp quân cờ hợp lệ vào bàn cờ.
-   - Tần suất sinh quân cờ: Khi người chơi ăn được 12 cặp.
+   - Tần suất sinh quân cờ: Khi người chơi ăn được 18 cặp.
    - Sau khi sinh ô: Chạy hàm kiểm tra Deadlock, nếu không còn đường đi hợp lệ thì kích hoạt Auto Shuffle.
    - Các cấp độ của việc sinh quân cờ:
       + Nâng cấp 1: Mỗi lần sinh ngẫu nhiên 3 cặp.
-      + Nâng cấp 2: Mỗi lần sinh ngẫu nhiên 1 cặp băng lửa + 2 cặp bình thường
-      + Nâng cấp 3: Mỗi lần sinh ra 2 cặp băng lửa + 1 cặp bình thường.
+      + Nâng cấp 2: Mỗi lần sinh ngẫu nhiên 1 cặp băng lửa + 2 cặp bình thường. Tần suất sinh quân cờ khi người chơi ăn được 15 cặp
+      + Nâng cấp 3: Mỗi lần sinh ra 2 cặp băng lửa + 1 cặp bình thường. Tần suất sinh quân cờ khi người chơi ăn được 12 cặp
       + Nâng cấp kinh dị: Mỗi lần sinh ra 2 cặp băng lửa + 1 cặp bình thường + Tần suất sinh quân cờ khi người chơi ăn được 9 cặp.
       
 

@@ -1,17 +1,20 @@
 // src/managers/AudioManager.js
+import StorageManager from "./StorageManager.js";
+
 class AudioManager {
     constructor() {
         this.audioContext = null;
         this.sounds = new Map();
         this.bgmAudio = null;
-        this.isMuted = false;
-        this.bgmVolume = 0.4;
-        this.sfxVolume = 0.7;
+        this.currentBgmIndex = -1;
+        this.totalBgmCount = 10;
+
+        const savedAudio = StorageManager.getAudioSettings();
+        this.isMuted = savedAudio.MUTE;
+        this.bgmVolume = savedAudio.BGM_VOLUME;
+        this.sfxVolume = savedAudio.SFX_VOLUME;
     }
 
-    /**
-     * Khởi tạo AudioContext khi có tương tác đầu tiên của người dùng
-     */
     init() {
         if (!this.audioContext) {
             const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -25,15 +28,20 @@ class AudioManager {
         }
     }
 
-    /**
-     * Tải danh sách file âm thanh vào bộ nhớ
-     * @param {Object} soundManifest - Cặp key: url (ví dụ: { click: '/sounds/click.mp3' })
-     * @returns {Promise<void>}
-     */
-    async loadSounds(soundManifest = {}) {
+    async loadSfx() {
         this.init();
 
-        const loadPromises = Object.entries(soundManifest).map(async ([name, url]) => {
+        const sfxFiles = {
+            click: "/assets/audio/sfx/click.wav",
+            game_over: "/assets/audio/sfx/game_over.wav",
+            level_clear: "/assets/audio/sfx/level_clear.wav",
+            match_element: "/assets/audio/sfx/match_element.wav",
+            match: "/assets/audio/sfx/match.wav",
+            shuffle: "/assets/audio/sfx/shuffle.wav",
+            spawn: "/assets/audio/sfx/spawn.wav",
+        };
+
+        const loadPromises = Object.entries(sfxFiles).map(async ([name, url]) => {
             try {
                 const response = await fetch(url);
                 const arrayBuffer = await response.arrayBuffer();
@@ -42,19 +50,14 @@ class AudioManager {
                     this.sounds.set(name, audioBuffer);
                 }
             } catch (error) {
-                console.warn(`Không thể tải file âm thanh: ${name} (${url})`, error);
+                console.warn(`Không thể tải âm thanh ${name}:`, error);
             }
         });
 
         await Promise.all(loadPromises);
     }
 
-    /**
-     * Phát hiệu ứng âm thanh (SFX) từ bộ nhớ đệm
-     * @param {string} name - Tên âm thanh trong manifest
-     * @param {number} [volume] - Âm lượng (0 - 1)
-     */
-    playSfx(name, volume = this.sfxVolume) {
+    playSfx(name) {
         if (this.isMuted || !this.audioContext) {
             return;
         }
@@ -68,7 +71,7 @@ class AudioManager {
         const gainNode = this.audioContext.createGain();
 
         source.buffer = buffer;
-        gainNode.gain.value = Math.max(0, Math.min(1, volume));
+        gainNode.gain.value = this.sfxVolume;
 
         source.connect(gainNode);
         gainNode.connect(this.audioContext.destination);
@@ -76,47 +79,42 @@ class AudioManager {
         source.start(0);
     }
 
-    /**
-     * Phát nhạc nền (BGM) lặp lại liên tục
-     * @param {string} url - Đường dẫn file nhạc nền
-     */
-    playBgm(url) {
+    playRandomBgm() {
         if (this.bgmAudio) {
-            this.stopBgm();
+            this.bgmAudio.pause();
+            this.bgmAudio = null;
         }
 
-        this.bgmAudio = new Audio(url);
-        this.bgmAudio.loop = true;
+        let nextIndex;
+        do {
+            nextIndex = Math.floor(Math.random() * this.totalBgmCount) + 1;
+        } while (nextIndex === this.currentBgmIndex && this.totalBgmCount > 1);
+
+        this.currentBgmIndex = nextIndex;
+        const bgmUrl = `/assets/audio/bgm/${this.currentBgmIndex}.mp3`;
+
+        this.bgmAudio = new Audio(bgmUrl);
         this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
 
-        this.bgmAudio.play().catch((error) => {
-            console.warn("Chưa thể phát BGM do chính sách autoplay của trình duyệt:", error);
+        this.bgmAudio.addEventListener("ended", () => {
+            this.playRandomBgm();
         });
+
+        this.bgmAudio.play().catch(() => {});
     }
 
-    /**
-     * Tạm dừng nhạc nền
-     */
     pauseBgm() {
         if (this.bgmAudio) {
             this.bgmAudio.pause();
         }
     }
 
-    /**
-     * Tiếp tục phát nhạc nền
-     */
     resumeBgm() {
         if (this.bgmAudio && !this.isMuted) {
-            this.bgmAudio.play().catch((error) => {
-                console.warn("Không thể tiếp tục phát BGM:", error);
-            });
+            this.bgmAudio.play().catch(() => {});
         }
     }
 
-    /**
-     * Dừng hẳn và đặt lại nhạc nền
-     */
     stopBgm() {
         if (this.bgmAudio) {
             this.bgmAudio.pause();
@@ -125,38 +123,17 @@ class AudioManager {
         }
     }
 
-    /**
-     * Bật / tắt toàn bộ âm thanh
-     * @param {boolean} [muteState] - Nếu bỏ trống sẽ tự đảo trạng thái hiện tại
-     * @returns {boolean}
-     */
-    toggleMute(muteState = null) {
-        this.isMuted = muteState !== null ? muteState : !this.isMuted;
-
-        if (this.bgmAudio) {
-            this.bgmAudio.volume = this.isMuted ? 0 : this.bgmVolume;
-        }
-
-        return this.isMuted;
-    }
-
-    /**
-     * Điều chỉnh âm lượng nhạc nền
-     * @param {number} volume - Giá trị 0 - 1
-     */
-    setBgmVolume(volume) {
-        this.bgmVolume = Math.max(0, Math.min(1, volume));
+    setBgmVolume(val) {
+        this.bgmVolume = Math.max(0, Math.min(1, val));
         if (this.bgmAudio && !this.isMuted) {
             this.bgmAudio.volume = this.bgmVolume;
         }
+        StorageManager.saveAudioSettings({ BGM_VOLUME: this.bgmVolume });
     }
 
-    /**
-     * Điều chỉnh âm lượng hiệu ứng âm thanh
-     * @param {number} volume - Giá trị 0 - 1
-     */
-    setSfxVolume(volume) {
-        this.sfxVolume = Math.max(0, Math.min(1, volume));
+    setSfxVolume(val) {
+        this.sfxVolume = Math.max(0, Math.min(1, val));
+        StorageManager.saveAudioSettings({ SFX_VOLUME: this.sfxVolume });
     }
 }
 

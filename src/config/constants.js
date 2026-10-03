@@ -1,12 +1,12 @@
 // src/config/constants.js
 const GRID_CONFIG = {
     LANDSCAPE: {
-        COLS: 16,
-        ROWS: 8,
+        COLS: 18,
+        ROWS: 9,
     },
     PORTRAIT: {
         COLS: 8,
-        ROWS: 16,
+        ROWS: 18,
     },
     PADDING: 1,
 };
@@ -61,8 +61,10 @@ const CELL_STATE = {
 };
 
 const TILE_SIZE = {
-    TILE_WIDTH: 48,
-    TILE_HEIGHT: 64,
+    TILE_WIDTH_L: 48,
+    TILE_HEIGHT_L: 64,
+    TILE_WIDTH_S: 36,
+    TILE_HEIGHT_S: 48,
 };
 
 export {

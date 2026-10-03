@@ -10,12 +10,20 @@ class Board {
      * @param {Object} options.levelConfig - Cấu hình từ LEVELS trong levels.js
      * @param {Object} options.directions - Enum DIRECTIONS từ constants.js
      * @param {Array<Array<number>>} [options.customMask] - Mặt nạ nhị phân tùy chỉnh (nếu có)
+     * @param {number} [options.totalAvailableTypes=20] - Tổng số loại ô cờ có trong asset
      */
-    constructor({ orientation = "LANDSCAPE", levelConfig, directions, customMask = null }) {
+    constructor({
+        orientation = "LANDSCAPE",
+        levelConfig,
+        directions,
+        customMask = null,
+        totalAvailableTypes = 20,
+    }) {
         this.orientation = orientation;
         this.levelConfig = levelConfig;
         this.directions = directions;
         this.customMask = customMask;
+        this.totalAvailableTypes = totalAvailableTypes;
 
         const baseGrid = GRID_CONFIG[this.orientation];
         this.innerCols = baseGrid.COLS;
@@ -28,6 +36,8 @@ class Board {
         this.grid = [];
         this.mask = [];
         this.matchesCount = 0;
+        this.selectedTypeIds = [];
+        this.upcomingSpawnTiles = [];
         this.pathFinder = new PathFinder(this.grid, this.directions);
 
         this.init();
@@ -38,12 +48,25 @@ class Board {
      */
     init() {
         this._initMask();
+        this._pickRandomTypes();
         this._generateTiles();
+        this._prepareNextSpawnTiles();
         this.pathFinder.setGrid(this.grid);
 
         if (this.isDeadlock()) {
             this.shuffle(false);
         }
+    }
+
+    /**
+     * Chọn ngẫu nhiên N loại ô từ tổng số loại có sẵn cho màn chơi hiện tại
+     * @private
+     */
+    _pickRandomTypes() {
+        const allTypes = Array.from({ length: this.totalAvailableTypes }, (_, i) => i + 1);
+        this._shuffleArray(allTypes);
+        const count = Math.min(this.levelConfig.tileTypeCount, this.totalAvailableTypes);
+        this.selectedTypeIds = allTypes.slice(0, count);
     }
 
     /**
@@ -75,7 +98,7 @@ class Board {
     }
 
     /**
-     * Khởi tạo và phân bổ quân cờ ban đầu lên lưới
+     * Khởi tạo và phân bổ quân cờ ban đầu lên lưới dựa trên danh sách loại ô đã random
      * @private
      */
     _generateTiles() {
@@ -93,14 +116,14 @@ class Board {
         }
 
         const totalPairs = activePositions.length / 2;
-        const availableTypeCount = this.levelConfig.tileTypeCount;
         const totalIceFirePairs = Math.min(this.levelConfig.iceFirePairs || 0, totalPairs);
         const totalNormalPairs = totalPairs - totalIceFirePairs;
+        const typesPoolSize = this.selectedTypeIds.length;
 
         const tilePool = [];
 
         for (let i = 0; i < totalNormalPairs; i++) {
-            const typeId = (i % availableTypeCount) + 1;
+            const typeId = this.selectedTypeIds[i % typesPoolSize];
             tilePool.push(
                 { typeId, element: TILE_ELEMENT.NORMAL },
                 { typeId, element: TILE_ELEMENT.NORMAL },
@@ -108,7 +131,7 @@ class Board {
         }
 
         for (let i = 0; i < totalIceFirePairs; i++) {
-            const typeId = (i % availableTypeCount) + 1;
+            const typeId = this.selectedTypeIds[i % typesPoolSize];
             tilePool.push(
                 { typeId, element: TILE_ELEMENT.ICE },
                 { typeId, element: TILE_ELEMENT.FIRE },
@@ -151,7 +174,7 @@ class Board {
      * Kiểm tra và thực hiện ăn hai ô nếu hợp lệ
      * @param {Object} posA - { x, y }
      * @param {Object} posB - { x, y }
-     * @returns {Object|null} Kết quả ghép cặp gồm đường đi và danh sách ô mới sinh (nếu có)
+     * @returns {Object|null}
      */
     tryMatch(posA, posB) {
         const tileA = this.getTile(posA.x, posA.y);
@@ -183,7 +206,7 @@ class Board {
     /**
      * Xử lý cơ chế Spawner sau mỗi lượt ghép cặp
      * @private
-     * @returns {Array<Object>} Danh sách các ô mới được nạp vào bàn cờ
+     * @returns {Array<Object>}
      */
     _handleSpawner() {
         const spawnerConfig = SPAWNER_CONFIG[this.levelConfig.spawnerLevel];
@@ -208,29 +231,26 @@ class Board {
         const totalSlotsNeeded = totalPairsNeeded * 2;
 
         if (emptySlots.length < totalSlotsNeeded) {
+            this._prepareNextSpawnTiles();
             return [];
         }
 
         this._shuffleArray(emptySlots);
 
         const newTiles = [];
-        const availableTypeCount = this.levelConfig.tileTypeCount;
-
-        for (let i = 0; i < spawnerConfig.normalPairs; i++) {
-            const typeId = Math.floor(Math.random() * availableTypeCount) + 1;
-            newTiles.push(
-                { typeId, element: TILE_ELEMENT.NORMAL },
-                { typeId, element: TILE_ELEMENT.NORMAL },
-            );
-        }
-
-        for (let i = 0; i < spawnerConfig.iceFirePairs; i++) {
-            const typeId = Math.floor(Math.random() * availableTypeCount) + 1;
-            newTiles.push(
-                { typeId, element: TILE_ELEMENT.ICE },
-                { typeId, element: TILE_ELEMENT.FIRE },
-            );
-        }
+        this.upcomingSpawnTiles.forEach((tile) => {
+            if (tile.element === TILE_ELEMENT.ICE) {
+                newTiles.push(
+                    { typeId: tile.typeId, element: TILE_ELEMENT.ICE },
+                    { typeId: tile.typeId, element: TILE_ELEMENT.FIRE },
+                );
+            } else {
+                newTiles.push(
+                    { typeId: tile.typeId, element: TILE_ELEMENT.NORMAL },
+                    { typeId: tile.typeId, element: TILE_ELEMENT.NORMAL },
+                );
+            }
+        });
 
         const spawned = [];
         for (let i = 0; i < newTiles.length; i++) {
@@ -240,6 +260,8 @@ class Board {
             spawned.push({ x: pos.x, y: pos.y, tile });
         }
 
+        this._prepareNextSpawnTiles();
+
         if (this.isDeadlock()) {
             this.shuffle(false);
         }
@@ -248,8 +270,65 @@ class Board {
     }
 
     /**
-     * Tìm kiếm một nước đi hợp lệ đầu tiên trên bàn cờ
-     * @returns {Object|null} Cặp ô { posA, posB } có thể ăn được
+     * Chuẩn bị trước danh sách quân cờ cho đợt spawn kế tiếp
+     * @private
+     */
+    _prepareNextSpawnTiles() {
+        const spawnerConfig = SPAWNER_CONFIG[this.levelConfig.spawnerLevel];
+        if (!spawnerConfig) {
+            this.upcomingSpawnTiles = [];
+            return;
+        }
+
+        const typesPoolSize = this.selectedTypeIds.length;
+        this.upcomingSpawnTiles = [];
+
+        for (let i = 0; i < spawnerConfig.normalPairs; i++) {
+            const randomIndex = Math.floor(Math.random() * typesPoolSize);
+            const typeId = this.selectedTypeIds[randomIndex];
+            this.upcomingSpawnTiles.push({ typeId, element: TILE_ELEMENT.NORMAL });
+        }
+
+        for (let i = 0; i < spawnerConfig.iceFirePairs; i++) {
+            const randomIndex = Math.floor(Math.random() * typesPoolSize);
+            const typeId = this.selectedTypeIds[randomIndex];
+            this.upcomingSpawnTiles.push({ typeId, element: TILE_ELEMENT.ICE });
+        }
+    }
+
+    /**
+     * Lấy thông tin số lượt còn lại và danh sách preview cho UI
+     * @returns {Object}
+     */
+    getSpawnerStatus() {
+        const spawnerConfig = SPAWNER_CONFIG[this.levelConfig.spawnerLevel];
+        if (!spawnerConfig) {
+            return {
+                isActive: false,
+                remaining: 0,
+                previewTiles: [],
+            };
+        }
+
+        const trigger = spawnerConfig.triggerMatches;
+        const remainder = this.matchesCount % trigger;
+        const remaining = trigger - remainder;
+
+        let visibleCount = 0;
+        if (remaining === 3) visibleCount = 1;
+        else if (remaining === 2) visibleCount = 2;
+        else if (remaining === 1) visibleCount = 3;
+
+        return {
+            isActive: true,
+            remaining,
+            previewTiles: this.upcomingSpawnTiles.slice(0, visibleCount),
+        };
+    }
+
+    /**
+     * Tìm nước đi hợp lệ đầu tiên
+     * @returns {Object|null}
      */
     findValidMove() {
         const activeTiles = [];
@@ -287,7 +366,7 @@ class Board {
     }
 
     /**
-     * Kiểm tra tình trạng bế tắc (không còn nước đi hợp lệ)
+     * Kiểm tra Deadlock
      * @returns {boolean}
      */
     isDeadlock() {
@@ -295,7 +374,7 @@ class Board {
     }
 
     /**
-     * Xáo trộn lại các quân cờ hiện có trên bàn cờ đảm bảo có ít nhất một nước đi hợp lệ
+     * Xáo trộn bàn cờ
      * @param {boolean} [checkCountOnly=true]
      * @returns {boolean}
      */
@@ -339,7 +418,7 @@ class Board {
     }
 
     /**
-     * Lấy thông tin ô tại tọa độ chỉ định
+     * Lấy dữ liệu ô tại tọa độ chỉ định
      * @param {number} x
      * @param {number} y
      * @returns {Object|null}
@@ -353,7 +432,7 @@ class Board {
     }
 
     /**
-     * Kiểm tra bàn cờ đã được giải quyết hoàn toàn chưa
+     * Kiểm tra bàn cờ đã sạch ô chưa
      * @returns {boolean}
      */
     isCleared() {
@@ -368,7 +447,7 @@ class Board {
     }
 
     /**
-     * Thuật toán xáo trộn mảng Fisher-Yates
+     * Thuật toán xáo trộn Fisher-Yates
      * @private
      */
     _shuffleArray(array) {

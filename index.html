@@ -1,13 +1,144 @@
+<!-- index.html -->
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>pikachu_non_classic</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico" />
+        <link
+            href="https://cdn.boxicons.com/3.0.8/fonts/basic/boxicons.min.css"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="/src/styles/style.css" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Meow Meow Pikachu</title>
+    </head>
+    <body>
+        <div id="app">
+            <header class="game-header">
+                <div class="logo">
+                    <img class="logo-img" src="/logo.webp" alt="logo-left" />
+                    <span class="logo-txt">Meow Meow Pikachu</span>
+                    <img class="logo-img" src="/logo.webp" alt="logo-right" />
+                </div>
+            </header>
+
+            <div class="game-layout">
+                <!-- Cột Score & Level -->
+                <aside class="sidebar-stats">
+                    <div class="horizontal-stat-block top-stat">
+                        <div class="stat-label">SCORE</div>
+                        <span id="val-score" class="stat-number">0</span>
+                    </div>
+
+                    <div class="spawner-status-block">
+                        <div class="stat-label">SPAWN<br />AFTER</div>
+                        <span id="val-spawn-count" class="stat-number">-</span>
+                        <div id="spawner-preview-list" class="spawner-preview-list"></div>
+                    </div>
+
+                    <div class="horizontal-stat-block bottom-stat">
+                        <span class="stat-label-inline">LEVEL</span>
+                        <span id="val-level" class="stat-number-inline">1</span>
+                    </div>
+                </aside>
+
+                <!-- Khu vực trung tâm: Topbar và Board -->
+                <div class="center-stage">
+                    <div class="game-topbar">
+                        <button id="btn-newgame" class="btn-action">
+                            <i class="bx bx-plus"></i> New Game
+                        </button>
+                        <button id="btn-pause" class="btn-action">
+                            <i class="bx bx-pause"></i> Pause
+                        </button>
+                        <button id="btn-settings" class="btn-action">
+                            <i class="bx bx-cog"></i> Settings
+                        </button>
+                        <button id="btn-gallery" class="btn-action">
+                            <i class="bx bx-images"></i> Gallery
+                        </button>
+                    </div>
+
+                    <div class="board-wrapper">
+                        <div id="hidden-background" class="hidden-background"></div>
+                        <div id="board-container" class="board-grid"></div>
+                        <canvas id="line-canvas" class="line-canvas"></canvas>
+
+                        <div id="board-overlay" class="board-overlay hidden">
+                            <div id="overlay-pause-content" class="overlay-box hidden">
+                                <p class="overlay-msg">Trò chơi đang tạm dừng</p>
+                            </div>
+
+                            <div
+                                id="overlay-settings-content"
+                                class="overlay-box settings-panel hidden"
+                            >
+                                <div class="setting-row">
+                                    <label for="range-music">Music</label>
+                                    <input
+                                        type="range"
+                                        id="range-music"
+                                        min="0"
+                                        max="100"
+                                        value="50"
+                                    />
+                                    <span id="txt-music">50</span>
+                                </div>
+                                <div class="setting-row">
+                                    <label for="range-sfx">SFX</label>
+                                    <input
+                                        type="range"
+                                        id="range-sfx"
+                                        min="0"
+                                        max="100"
+                                        value="50"
+                                    />
+                                    <span id="txt-sfx">50</span>
+                                </div>
+                            </div>
+
+                            <div id="overlay-gameover-content" class="overlay-box hidden">
+                                <h1 class="gameover-title">Game Over</h1>
+                                <p class="gameover-score">
+                                    Total Score: <span id="val-final-score">0</span>
+                                </p>
+                                <button id="btn-restart" class="btn-action">
+                                    <i class="bx bx-plus"></i> New Game
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cột dọc Timer + Shuffle + Số quân còn lại -->
+                <aside class="sidebar-timer">
+                    <div id="matches-left" class="matches-stat">0</div>
+                    <div class="timer-container">
+                        <div id="timer-cover" class="timer-cover"></div>
+                    </div>
+                    <button
+                        id="btn-shuffle"
+                        class="btn-action btn-shuffle-icon"
+                        title="Shuffle"
+                    >
+                        <i class="bx bx-dice-5"></i>
+                    </button>
+                </aside>
+            </div>
+        </div>
+
+        <div id="gallery-modal" class="gallery-modal hidden">
+            <div class="gallery-content">
+                <div class="gallery-header">
+                    <h2>Bộ Sưu Tập Ảnh</h2>
+                    <button id="btn-close-gallery" class="btn-close">
+                        <i class="bx bx-x"></i>
+                    </button>
+                </div>
+                <div id="gallery-list" class="gallery-grid"></div>
+            </div>
+        </div>
+
+        <script type="module" src="/src/main.js"></script>
+    </body>
 </html>
