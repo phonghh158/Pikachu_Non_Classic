@@ -31,7 +31,7 @@ class BoardView {
     }
 
     /**
-     * Xác định kích thước ô dựa theo chiều cao màn hình (ngưỡng Laptop <= 850px)
+     * Xác định kích thước ô dựa theo dim màn hình
      * @private
      */
     _updateTileDimensions() {

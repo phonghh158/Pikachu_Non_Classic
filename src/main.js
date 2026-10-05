@@ -441,7 +441,7 @@ async function bootstrap() {
     };
     document.addEventListener("pointerdown", unlockAudio);
 
-    setupLevelCheatKeys();
+    // setupLevelCheatKeys();
 
     startNewGame();
 }

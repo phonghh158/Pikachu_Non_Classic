@@ -57,7 +57,7 @@ const LEVELS = [
     {
         id: 3,
         name: "Level 3",
-        timeLimit: 720,
+        timeLimit: 600,
         tileTypeCount: 12,
         iceFirePairs: 8,
         spawnerLevel: SPAWNER_LEVEL.UPGRADE_1,
@@ -65,7 +65,7 @@ const LEVELS = [
     {
         id: 4,
         name: "Level 4",
-        timeLimit: 1100,
+        timeLimit: 960,
         tileTypeCount: 16,
         iceFirePairs: 12,
         spawnerLevel: SPAWNER_LEVEL.UPGRADE_2,
@@ -73,7 +73,7 @@ const LEVELS = [
     {
         id: 5,
         name: "Level 5",
-        timeLimit: 1020,
+        timeLimit: 1080,
         tileTypeCount: 16,
         iceFirePairs: 16,
         spawnerLevel: SPAWNER_LEVEL.UPGRADE_3,
@@ -81,7 +81,7 @@ const LEVELS = [
     {
         id: 6,
         name: "Level 6",
-        timeLimit: 1100,
+        timeLimit: 1200,
         tileTypeCount: 20,
         iceFirePairs: 20,
         spawnerLevel: SPAWNER_LEVEL.UPGRADE_4,
