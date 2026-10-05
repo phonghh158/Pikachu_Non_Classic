@@ -434,6 +434,8 @@ async function bootstrap() {
         AudioManager.init();
         if (!AudioManager.bgmAudio) {
             AudioManager.playRandomBgm();
+        } else if (AudioManager.bgmAudio.paused) {
+            AudioManager.resumeBgm();
         }
         document.removeEventListener("pointerdown", unlockAudio);
     };

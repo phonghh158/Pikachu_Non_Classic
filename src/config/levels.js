@@ -49,7 +49,7 @@ const LEVELS = [
     {
         id: 2,
         name: "Level 2",
-        timeLimit: 660,
+        timeLimit: 420,
         tileTypeCount: 8,
         iceFirePairs: 8,
         spawnerLevel: SPAWNER_LEVEL.BASIC,

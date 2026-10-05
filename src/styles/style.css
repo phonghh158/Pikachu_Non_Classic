@@ -7,9 +7,9 @@
 
     --tile-color: linear-gradient(
         235deg,
-        rgba(232, 217, 202, 1) 0%,
-        rgba(252, 192, 159, 1) 66%,
-        rgba(255, 184, 152, 1) 100%
+        rgba(254, 255, 196, 1) 0%,
+        rgba(252, 229, 154, 1) 66%,
+        rgba(255, 215, 88, 1) 100%
     );
 
     --fire-color: linear-gradient(
@@ -424,7 +424,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 1px 3px 0 rgba(232, 217, 202, 0.66);
+    box-shadow: 1px 3px 0 rgba(252, 229, 154, 0.66);
     transition: all 0.2 ease;
 }
 
