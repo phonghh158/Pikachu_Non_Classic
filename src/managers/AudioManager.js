@@ -29,8 +29,6 @@ class AudioManager {
     }
 
     async loadSfx() {
-        this.init();
-
         const sfxFiles = {
             click: "/assets/audio/sfx/click.wav",
             game_over: "/assets/audio/sfx/game_over.wav",
@@ -41,12 +39,15 @@ class AudioManager {
             spawn: "/assets/audio/sfx/spawn.wav",
         };
 
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        const tempCtx = AudioCtx ? new AudioCtx() : null;
+
         const loadPromises = Object.entries(sfxFiles).map(async ([name, url]) => {
             try {
                 const response = await fetch(url);
                 const arrayBuffer = await response.arrayBuffer();
-                if (this.audioContext) {
-                    const audioBuffer = await this.audioContext.decodeAudioData(arrayBuffer);
+                if (tempCtx) {
+                    const audioBuffer = await tempCtx.decodeAudioData(arrayBuffer);
                     this.sounds.set(name, audioBuffer);
                 }
             } catch (error) {
@@ -55,6 +56,9 @@ class AudioManager {
         });
 
         await Promise.all(loadPromises);
+        if (tempCtx) {
+            tempCtx.close();
+        }
     }
 
     playSfx(name) {

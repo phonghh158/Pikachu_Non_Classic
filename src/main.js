@@ -432,11 +432,14 @@ async function bootstrap() {
 
     const unlockAudio = () => {
         AudioManager.init();
+        if (!AudioManager.bgmAudio) {
+            AudioManager.playRandomBgm();
+        }
         document.removeEventListener("pointerdown", unlockAudio);
     };
     document.addEventListener("pointerdown", unlockAudio);
 
-    // setupLevelCheatKeys();
+    setupLevelCheatKeys();
 
     startNewGame();
 }
